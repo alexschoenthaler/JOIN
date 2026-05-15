@@ -1,4 +1,4 @@
-const BOARDURLBASE = 'https://join-6f9cc-default-rtdb.europe-west1.firebasedatabase.app/';
+const BOARDURLBASE = 'https://my-join-e87b0-default-rtdb.europe-west1.firebasedatabase.app/';
 let TASK = [];
 let TASKKEYS = [];
 let count = 0;

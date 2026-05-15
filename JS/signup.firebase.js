@@ -1,5 +1,5 @@
 /** Firebase base URL */
-const FIREBASE_URL = 'https://join-6f9cc-default-rtdb.europe-west1.firebasedatabase.app';
+const FIREBASE_URL = 'https://my-join-e87b0-default-rtdb.europe-west1.firebasedatabase.app/';
 
 /** Available colors for new user avatars */
 const COLORS = [

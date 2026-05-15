@@ -7,7 +7,7 @@
  */
 
 /** @type {string} Firebase Realtime Database base URL */
-const SUMMARYURLBASE = 'https://join-6f9cc-default-rtdb.europe-west1.firebasedatabase.app/';
+const SUMMARYURLBASE = 'https://my-join-e87b0-default-rtdb.europe-west1.firebasedatabase.app/';
 const SUMMARY_COMPACT_BREAKPOINT = 1024;
 
 document.addEventListener('DOMContentLoaded', async () => {

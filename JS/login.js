@@ -59,7 +59,7 @@ async function saveLoggedInUser(userKey) {
  */
 async function fetchContactData(userKey) {
   let response = await fetch(
-    `https://join-6f9cc-default-rtdb.europe-west1.firebasedatabase.app/Contacts/${userKey}.json`,
+    `https://my-join-e87b0-default-rtdb.europe-west1.firebasedatabase.app/Contacts/${userKey}.json`,
   );
   let contactData = await response.json();
   return contactData;

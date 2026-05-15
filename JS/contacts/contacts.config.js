@@ -5,7 +5,7 @@ window.ContactsApp = window.ContactsApp || {};
 /** @type {Object} Application configuration constants */
 ContactsApp.config = {
   /** @type {string} Firebase Realtime Database URL */
-  DB_URL: 'https://join-6f9cc-default-rtdb.europe-west1.firebasedatabase.app',
+  DB_URL: 'https://my-join-e87b0-default-rtdb.europe-west1.firebasedatabase.app',
   /** @type {string} Database path for contacts */
   CONTACTS_PATH: '/Contacts',
   /** @type {string} Database path for tasks */

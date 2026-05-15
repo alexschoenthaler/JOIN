@@ -86,7 +86,7 @@ function initLandscapeOverlay() {
  * @returns {Object} complete list of login-data (emails and password)
  */
 async function fetchLoginData() {
-    let response = await fetch('https://join-6f9cc-default-rtdb.europe-west1.firebasedatabase.app/LoginData.json');
+    let response = await fetch('https://my-join-e87b0-default-rtdb.europe-west1.firebasedatabase.app/LoginData.json');
     let loginData = await response.json();
     return loginData;
 }
