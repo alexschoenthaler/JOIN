@@ -1,6 +1,9 @@
-
-
-/** Builds the HTML markup for a task card on the board. */
+/**
+ * Builds the HTML markup for a task card on the board.
+ *
+ * @param {number|string} taskID Task ID used to resolve the task data.
+ * @returns {string} HTML markup for the board task card.
+ */
 function taskTamplate(taskID) {
     let task = getTaskById(taskID);
     let subTasks = safeArray(task.subTasks);
@@ -29,17 +32,25 @@ function taskTamplate(taskID) {
                     </div>
                 <div>
                 </section>
-            </div>
-            `
+            </div>`
 }
 
-/** Builds the HTML markup for the drag-and-drop highlight placeholder. */
+/**
+ * Builds the HTML markup for the drag-and-drop highlight placeholder.
+ *
+ * @param {number|string} ID Numeric suffix used in the placeholder element ID.
+ * @returns {string} HTML markup for the highlight placeholder.
+ */
 function highlightTaskTamplate(ID) {
     return `<div id="highlightTask${ID}" class = "highlightTask">
             </div>`
 }
 
-/** Builds the HTML markup for the four task board columns. */
+/**
+ * Builds the HTML markup for the four desktop task board columns.
+ *
+ * @returns {string} HTML markup for the desktop board layout.
+ */
 function taskBoardTamplate() {
     return `        <tr class="tableCategories">
                         <td>To do <span onmouseover="displayNone('+todoDesktop','+todoDesktopMousover')" onmouseout = "removeDisplayNone('+todoDesktop','+todoDesktopMousover')" onclick = "selectEditOrAdd(0);opendialog('boardAddTask');init();showExitButtonEditTask();clearForm()"><img class ="plusButtonBoard" id ="+todoDesktop" src="./assets/img/plus_button.svg" alt="+todoDesktop"><img class ="displayNone plusButtonBoard" id="+todoDesktopMousover" src="./assets/img/plus_button_lightblue.svg" alt="+todoDesktopMousover"></span></td>
@@ -55,7 +66,11 @@ function taskBoardTamplate() {
                     </tr>`
 }
 
-/** Builds the HTML markup for the stacked mobile board layout. */
+/**
+ * Builds the HTML markup for the stacked mobile board layout.
+ *
+ * @returns {string} HTML markup for the mobile board layout.
+ */
 function taskBoardTamplateMobile() {
     return `            <tr>
                             <td class="tableCategories">To do <span onmouseover="displayNone('+todoMobile','+todoMobileMousover')" onmouseout = "removeDisplayNone('+todoMobile','+todoMobileMousover')" onclick = "selectEditOrAdd(0);opendialog('boardAddTask');init();showExitButtonEditTask();clearForm()"><img class ="plusButtonBoard" id ="+todoMobile" src="./assets/img/plus_button.svg" alt="+todo"><img class ="displayNone plusButtonBoard" id="+todoMobileMousover" src="./assets/img/plus_button_lightblue.svg" alt="+todoMobileMousover"></span></th>
@@ -85,7 +100,12 @@ function taskBoardTamplateMobile() {
                         </tr>`
 }
 
-/** Builds the HTML markup for the detailed view of a task. */
+/**
+ * Builds the HTML markup for the detailed view of a task.
+ *
+ * @param {number|string} taskID Task ID used to resolve the task data.
+ * @returns {string} HTML markup for the task details dialog.
+ */
 function taskDetailsTamplate(taskID) {
     let task = getTaskById(taskID);
 
@@ -129,15 +149,27 @@ function taskDetailsTamplate(taskID) {
              </div>
         </footer>
     </div>`
-
 }
 
-/** Builds the HTML markup for a single subtask with its checkbox icons. */
+/**
+ * Builds the HTML markup for a single subtask with its checkbox icons.
+ *
+ * @param {number} subtaskID Index of the subtask within the current task.
+ * @param {string} subTask Subtask label.
+ * @returns {string} HTML markup for one subtask row.
+ */
 function subtaskTamplate(subtaskID, subTask) {
     return `<span><img class ="displayNone" onclick="toggleSubtaskCheckboxVisibility('stCheckboxU${subtaskID}','stCheckboxC${subtaskID}'); toggleSubtaskStatus('stCheckboxC${subtaskID}','${subtaskID}')"  id ="stCheckboxU${subtaskID}" src="./assets/img/checkboxUnchecked.svg" alt="Checkbox"><img class ="displayNone" onclick="toggleSubtaskCheckboxVisibility('stCheckboxU${subtaskID}','stCheckboxC${subtaskID}'); toggleSubtaskStatus('stCheckboxC${subtaskID}','${subtaskID}')" id="stCheckboxC${subtaskID}" src="./assets/img/checkboxChecked.svg" alt="Checkbox checked"> ${safeText(subTask, '')}</span>`
 }
 
-/** Builds the HTML markup for an assigned contact in the task details. */
+/**
+ * Builds the HTML markup for an assigned contact in the task details.
+ *
+ * @param {string} initials Contact initials displayed in the badge.
+ * @param {string} name Contact display name.
+ * @param {string} color Background color of the contact badge.
+ * @returns {string} HTML markup for one contact row in task details.
+ */
 function taskDetailContactsTamplate(initials, name, color) {
     return `<div class = "taskDetailsATContainer">
             <span style="background-color: ${safeText(color, '#2A3647')};" class="badge">${safeText(initials, '?')}</span>
@@ -145,16 +177,35 @@ function taskDetailContactsTamplate(initials, name, color) {
             </div>`
 }
 
-/** Builds the badge markup used for assigned contacts on a board task card. */
+/**
+ * Builds the badge markup used for assigned contacts on a board task card.
+ *
+ * @param {string} initials Contact initials displayed in the badge.
+ * @param {string} color Background color of the contact badge.
+ * @returns {string} HTML markup for one task-card contact badge.
+ */
 function taskContactsTamplate(initials, color) {
     return `<span style="background-color: ${safeText(color, '#2A3647')};" class="badge taskContactsbadge">${safeText(initials, '?')}</span>`
 }
 
+/**
+ * Builds the overflow badge for additional assigned contacts on a board task card.
+ *
+ * @param {number} refContactsContainer Total number of assigned contacts.
+ * @returns {string} HTML markup for the overflow contacts badge.
+ */
 function taskContactsFillerTamplate(refContactsContainer) {
     return `<span style="background-color: #2A3647;"class="badge taskContactsbadge">+${refContactsContainer - 4}</span>`
 }
 
-/** Builds the mobile move menu for tasks currently in the first column. */
+/**
+ * Builds the mobile move menu for tasks currently in the first column.
+ *
+ * @param {number|string} taskID Task ID that can be moved.
+ * @param {DOMRect} mobileArrowsMoveTaskPosition Bounding rectangle of the move trigger.
+ * @param {number} moveTaskPositionOffset Horizontal offset applied to the menu.
+ * @returns {string} HTML markup for the mobile move menu.
+ */
 function moveTamplateTaskMobileField1(taskID, mobileArrowsMoveTaskPosition, moveTaskPositionOffset){
     return `<div class="taskMobileMenu taskMobileMove" role="menu" aria-label="taskMobileMove menu" style="top: ${mobileArrowsMoveTaskPosition.top}px; left: ${mobileArrowsMoveTaskPosition.left - moveTaskPositionOffset}px;" onmouseleave="removeMobileMoveTask()" >
                      <span>Move to</span>
@@ -164,10 +215,16 @@ function moveTamplateTaskMobileField1(taskID, mobileArrowsMoveTaskPosition, move
                             <td onclick = "removeMobileMoveTask(); taskMoveDownMobile(${taskID})" role="menuitem" class="taskMobileSubmenuItem">Review</td>
                         </tr>
                     </div>`;
-
 }
 
-/** Builds the mobile move menu for tasks currently in the last column. */
+/**
+ * Builds the mobile move menu for tasks currently in the last column.
+ *
+ * @param {number|string} taskID Task ID that can be moved.
+ * @param {DOMRect} mobileArrowsMoveTaskPosition Bounding rectangle of the move trigger.
+ * @param {number} moveTaskPositionOffset Horizontal offset applied to the menu.
+ * @returns {string} HTML markup for the mobile move menu.
+ */
 function moveTamplateTaskMobileField4(taskID, mobileArrowsMoveTaskPosition, moveTaskPositionOffset) {
     return `<div class="taskMobileMenu taskMobileMove" role="menu" aria-label="taskMobileMove menu" style="top: ${mobileArrowsMoveTaskPosition.top}px; left: ${mobileArrowsMoveTaskPosition.left - moveTaskPositionOffset}px;" onmouseleave="removeMobileMoveTask()" >
                      <span>Move to</span>
@@ -179,7 +236,14 @@ function moveTamplateTaskMobileField4(taskID, mobileArrowsMoveTaskPosition, move
                     </div>`;
 }
 
-/** Builds the mobile move menu for tasks currently in the middle columns. */
+/**
+ * Builds the mobile move menu for tasks currently in the middle columns.
+ *
+ * @param {number|string} taskID Task ID that can be moved.
+ * @param {DOMRect} mobileArrowsMoveTaskPosition Bounding rectangle of the move trigger.
+ * @param {number} moveTaskPositionOffset Horizontal offset applied to the menu.
+ * @returns {string} HTML markup for the mobile move menu.
+ */
 function moveTamplateTaskMobileField2_3(taskID, mobileArrowsMoveTaskPosition, moveTaskPositionOffset) {
    return `<div class="taskMobileMenu taskMobileMove" role="menu" aria-label="taskMobileMove menu" style="top: ${mobileArrowsMoveTaskPosition.top}px; left: ${mobileArrowsMoveTaskPosition.left - moveTaskPositionOffset}px;" onmouseleave="removeMobileMoveTask()" >
                      <span>Move to</span>
@@ -192,6 +256,5 @@ function moveTamplateTaskMobileField2_3(taskID, mobileArrowsMoveTaskPosition, mo
                             <td onclick = "removeMobileMoveTask(); taskMoveDownMobile(${taskID})" role="menuitem" class="taskMobileSubmenuItem"><img src="./assets/img/arrow_downward_TaskMobile.svg" alt="Arrow Down"></td>
                             <td onclick = "removeMobileMoveTask(); taskMoveDownMobile(${taskID})" role="menuitem" class="taskMobileSubmenuItem">Review</td>
                      </table>
-                    </div>`;
-    
+                    </div>`;  
 }

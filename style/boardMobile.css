@@ -18,7 +18,7 @@
     }
 
     :root {
-        --boardWith: 800px;
+        --boardWith: calc(100vw - 424px);
     }
 
     .tablecontainer table {
@@ -31,10 +31,6 @@
         font-size: 27px;
         display: flex;
         justify-content: space-between;
-    }
-
-    .mobileArrows {
-        display: unset;
     }
 
     .taskMobileMove span {
@@ -129,11 +125,14 @@
 
     }
 
+    .highlightTask {
+        display: none;
+    }
 }
 
 @media(max-width:1230px) {
     :root {
-        --boardWith: 600px;
+        --boardWith: calc(100vw - 424px);
     }
 
     .boardAddTaskButton {
@@ -163,7 +162,7 @@
     }
 
     .noTaskField {
-        width: calc(var(--boardWith) - 20px) !important;
+        width: calc(var(--boardWith) - 20px);
     }
 }
 
@@ -171,33 +170,35 @@
     .canvas-area {
         padding: 64px 30px;
     }
-}
-
-@media (max-width: 900px) {
     :root {
-        --boardWith: 400px;
+        --boardWith: calc(100vw - 292px);
     }
 }
 
 @media (max-width: 769px) {
     :root {
-        --boardWith: 600px;
+        --boardWith: calc(100vw - 32px);
     }
 
     .canvas-area {
-        padding: 64px 96px;
+        padding: 64px 16px;
     }
+
+    .mobileArrows {
+        display: unset;
+    }
+
 }
 
 @media (max-width: 750px) {
     .canvas-area {
-        padding: 64px 60px;
+        padding: 64px 16px;
     }
 }
 
 @media (max-width: 700px) {
     :root {
-        --boardWith: 500px;
+        --boardWith: calc(100vw - 32px);
     }
 
 }
@@ -210,13 +211,13 @@
 
 @media (max-width: 610px) {
     :root {
-        --boardWith: 400px;
+        --boardWith: calc(100vw - 32px);
     }
 }
 
 @media (max-width: 500px) {
     :root {
-        --boardWith: 300px;
+        --boardWith: calc(100vw - 32px);
     }
 
     .searchBar input {
@@ -228,13 +229,22 @@
 
 @media (max-width: 390px) {
     .canvas-area {
-        padding: 64px 30px;
+        padding: 64px 16px;
     }
 }
 
 @media (max-width: 350px) {
     :root {
-        --boardWith: 270px;
+       --boardWith: calc(100vw - 32px);
+    }
+
+    .mobileFieldProperties{
+        gap: 15px;
+    }
+
+    .tablecontainer td .taskContainer{
+        padding-right: 10px;
+        padding-left: 1px;
     }
 
 }

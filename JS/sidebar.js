@@ -5,37 +5,49 @@ document.addEventListener('DOMContentLoaded', async () => {
   handleGuestMobileNav();
 });
 
-
 /**
  * Handles sidebar visibility based on login state.
  * Hides navigation and shows a login button when not authenticated.
  */
 function handleSidebarAuth() {
-  const nav = document.querySelector(".nav");
-  const sidebarTop = document.querySelector(".sidebar-top");
+  if (!shouldShowLoggedOutSidebar()) return;
+  hideSidebarNavigation();
+  insertSidebarLoginButton();
+}
+
+/**
+ * Checks whether the logged-out sidebar state should be shown.
+ * @returns {boolean} True for anonymous visitors.
+ */
+function shouldShowLoggedOutSidebar() {
   const isGuest = sessionStorage.getItem("isGuest") === "true";
   const isLoggedIn = !!sessionStorage.getItem("contactId");
+  return !isLoggedIn && !isGuest;
+}
 
-  // Show the reduced sidebar with login button only when not logged in and not a guest
-  if (!isLoggedIn && !isGuest) {
-    // Hide navigation
-    if (nav) nav.style.display = "none";
+/** Hides the desktop sidebar navigation. */
+function hideSidebarNavigation() {
+  const nav = document.querySelector(".nav");
+  if (nav) nav.style.display = "none";
+}
 
-    // Insert login button
-    if (!document.querySelector(".sidebar-login")) {
-      const loginBtn = document.createElement("a");
-      loginBtn.href = "./index.html";
-      loginBtn.className = "sidebar-login";
-      loginBtn.innerHTML = `
-        <span class="nav-icon">
-          <img src="./assets/img/login.svg" alt="Login">
-        </span>
-        <span>Log In</span>
-      `;
+/** Adds a login button below the sidebar logo when missing. */
+function insertSidebarLoginButton() {
+  const sidebarTop = document.querySelector(".sidebar-top");
+  if (!sidebarTop || document.querySelector(".sidebar-login")) return;
+  sidebarTop.insertAdjacentElement("afterend", createSidebarLoginButton());
+}
 
-      sidebarTop.insertAdjacentElement("afterend", loginBtn);
-    }
-  }
+/**
+ * Creates the logged-out sidebar login link.
+ * @returns {HTMLAnchorElement} Login link element.
+ */
+function createSidebarLoginButton() {
+  const loginBtn = document.createElement("a");
+  loginBtn.href = "./index.html";
+  loginBtn.className = "sidebar-login";
+  loginBtn.innerHTML = `<span class="nav-icon"><img src="./assets/img/login.svg" alt="Login"></span><span>Log In</span>`;
+  return loginBtn;
 }
 
 /**
@@ -59,27 +71,17 @@ async function loadSidebarTemplate(url, targetSelector) {
  */
 function markActiveNav() {
   const currentPage = location.pathname.split('/').pop();
+  ['.nav-item', '.mobile-nav-item', '.sidebar-bottom .sidebar-link', '.mobile-nav-guest-item']
+    .forEach((selector) => toggleActiveNavLinks(selector, currentPage));
+}
 
-  // Mark active for desktop sidebar
-  document.querySelectorAll('.nav-item').forEach(link => {
-    const linkPage = link.getAttribute('href').split('/').pop();
-    link.classList.toggle('active', linkPage === currentPage);
-  });
-
-  // Mark active for mobile bottom nav
-  document.querySelectorAll('.mobile-nav-item').forEach(link => {
-    const linkPage = link.getAttribute('href').split('/').pop();
-    link.classList.toggle('active', linkPage === currentPage);
-  });
-
-  // Mark active for sidebar bottom links
-  document.querySelectorAll('.sidebar-bottom .sidebar-link').forEach(link => {
-    const linkPage = link.getAttribute('href').split('/').pop();
-    link.classList.toggle('active', linkPage === currentPage);
-  });
-
-  // Mark active for guest mobile bottom nav
-  document.querySelectorAll('.mobile-nav-guest-item').forEach(link => {
+/**
+ * Toggles active state for navigation links matching the current page.
+ * @param {string} selector - Selector for the nav links to inspect.
+ * @param {string} currentPage - Current page file name.
+ */
+function toggleActiveNavLinks(selector, currentPage) {
+  document.querySelectorAll(selector).forEach((link) => {
     const linkPage = link.getAttribute('href').split('/').pop();
     link.classList.toggle('active', linkPage === currentPage);
   });

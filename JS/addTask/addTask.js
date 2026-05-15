@@ -1,13 +1,10 @@
-const BASE_URL =
-  "https://join-6f9cc-default-rtdb.europe-west1.firebasedatabase.app/";
 
+const BASE_URL = "https://join-6f9cc-default-rtdb.europe-west1.firebasedatabase.app/";
 let contacts = [];
 let editingSubtaskIndex = null;
 let assignedPreviewMode = false;
-
 const mediumBtn = document.querySelector(".importanceLevel:nth-child(2)");
 const lowBtn = document.querySelector(".importanceLevel:nth-child(3)");
-
 let task = {
   title: "",
   description: "",
@@ -19,7 +16,15 @@ let task = {
   field: "1",
 };
 
-/** Initializes the add-task view and loads required startup data. */
+/**
+ * Initializes the add-task page.
+ * Loads all required data, event listeners,
+ * UI interactions and default settings.
+ *
+ * @async
+ * @function init
+ * @returns {Promise<void>}
+ */
 async function init() {
   setupBoardDialog();
   renderTemplate();
@@ -34,6 +39,13 @@ async function init() {
   document.addEventListener("click", closeCategoryDropdown);
 }
 
+/**
+ * Configures the board dialog for add-task mode.
+ * Disables edit-task mode if available.
+ *
+ * @function setupBoardDialog
+ * @returns {void}
+ */
 function setupBoardDialog() {
   // const boardDialog = document.getElementById("boardAddTask");
   // if (boardDialog) {
@@ -45,12 +57,26 @@ function setupBoardDialog() {
   }
 }
 
-/** Renders the add-task template into the main content container. */
+/**
+ * Renders the add-task template
+ * into the main content container.
+ *
+ * @function renderTemplate
+ * @returns {void}
+ */
 function renderTemplate() {
   document.getElementById("mainContent").innerHTML = createTaskTemplate();
 }
 
-/** Saves a task by generating a key and delegating persistence to Firebase. */
+/**
+ * Saves a task to Firebase.
+ * Generates a unique task key beforehand.
+ *
+ * @async
+ * @function saveTask
+ * @param {Object} task - Task object to save.
+ * @returns {Promise<string|null>} Firebase task key or null on failure.
+ */
 async function saveTask(task) {
   try {
     const existingTasks = (await DataGET("Tasks")) || {};
@@ -63,11 +89,19 @@ async function saveTask(task) {
   }
 }
 
-/** Persists the task payload to Firebase including subtask review defaults. */
-async function saveTaskToFirebase(task, taskID, taskKey) {
+/**
+ * Creates the payload object for Firebase storage.
+ * Includes default subtask review values.
+ *
+ * @function createTaskPayload
+ * @param {Object} task - Task object.
+ * @param {number} taskID - Generated task ID.
+ * @returns {Object} Firebase-ready task payload.
+ */
+function createTaskPayload(task, taskID) {
   let checkboxString = task.subTasks.map(() => "U").toString();
 
-  const payload = {
+  return {
     ...task,
     id: taskID,
     field: { field: "field1" },
@@ -77,6 +111,20 @@ async function saveTaskToFirebase(task, taskID, taskKey) {
       0: checkboxString,
     },
   };
+}
+
+/**
+ * Saves the prepared task payload to Firebase.
+ *
+ * @async
+ * @function saveTaskToFirebase
+ * @param {Object} task - Task object.
+ * @param {number} taskID - Generated task ID.
+ * @param {string} taskKey - Firebase task key.
+ * @returns {Promise<string>} Saved task key.
+ */
+async function saveTaskToFirebase(task, taskID, taskKey) {
+  const payload = createTaskPayload(task, taskID);
 
   await DataPUT(`Tasks/${taskKey}`, payload);
 
@@ -85,19 +133,34 @@ async function saveTaskToFirebase(task, taskID, taskKey) {
   return taskKey;
 }
 
-/** Generates the next sequential task ID and Firebase key from existing tasks. */
+/**
+ * Generates the next available task ID and Firebase key.
+ *
+ * @function generateTaskKey
+ * @param {Object} existingTasks - Existing Firebase tasks.
+ * @returns {{taskID: number, taskKey: string}}
+ */
 function generateTaskKey(existingTasks) {
   const keys = Object.keys(existingTasks || {});
   const lastIndex =
     keys.length > 0
       ? Math.max(...keys.map((k) => parseInt(k.replace("Task", ""))))
       : 0;
+
   const taskID = lastIndex + 1;
   const taskKey = "Task" + taskID;
+
   return { taskID, taskKey };
 }
 
-/** Collects form values, validates input, and creates a new task entry. */
+/**
+ * Collects form values, validates the task,
+ * and starts the save process.
+ *
+ * @async
+ * @function createTask
+ * @returns {Promise<string|null>} Saved task key or null.
+ */
 async function createTask() {
   assignTaskValues();
 
@@ -108,6 +171,13 @@ async function createTask() {
   return await handleTaskSaving();
 }
 
+/**
+ * Assigns form input values
+ * to the global task object.
+ *
+ * @function assignTaskValues
+ * @returns {void}
+ */
 function assignTaskValues() {
   const titleInput = document.getElementById("taskName");
   const descInput = document.getElementById("taskDesc");
@@ -118,12 +188,29 @@ function assignTaskValues() {
   task.dueDate = dateInput.value;
 }
 
+/**
+ * Validates the current task data.
+ *
+ * @function handleTaskValidation
+ * @returns {boolean} True if valid, otherwise false.
+ */
 function handleTaskValidation() {
   errorMessage();
-  if (!task.title || !task.dueDate || !task.category) return false;
+
+  if (!task.title || !task.dueDate || !task.category) {
+    return false;
+  }
+
   return true;
 }
 
+/**
+ * Saves the task and handles success UI.
+ *
+ * @async
+ * @function handleTaskSaving
+ * @returns {Promise<string|null>} Saved task key or null.
+ */
 async function handleTaskSaving() {
   const taskKey = await saveTask(task);
 
@@ -136,10 +223,14 @@ async function handleTaskSaving() {
   return null;
 }
 
-/** Creates a task and refreshes the board when creation succeeds. */
-async function createTaskAndRefreshBoard() {
-  errorMessage();
-
+/**
+ * Creates a simplified task object
+ * from current form input values.
+ *
+ * @function getTaskFromInput
+ * @returns {Object|null} Task object or null if invalid.
+ */
+function getTaskFromInput() {
   const task = {
     title: document.getElementById("taskName").value,
     dueDate: document.getElementById("DueDate").value,
@@ -147,19 +238,42 @@ async function createTaskAndRefreshBoard() {
   };
 
   if (!task.title || !task.dueDate || !task.category) {
-    return;
+    return null;
   }
+
+  return task;
+}
+
+/**
+ * Creates a task and redirects
+ * to the board page after success.
+ *
+ * @async
+ * @function createTaskAndRefreshBoard
+ * @returns {Promise<void>}
+ */
+async function createTaskAndRefreshBoard() {
+  errorMessage();
+
+  const task = getTaskFromInput();
+  if (!task) return;
 
   await createTask();
 
-  showToast(); // falls du sowas hast
+  showToast();
 
   setTimeout(() => {
     window.location.href = "board.html";
   }, 800);
 }
 
-/** Resets the form and reinitializes the in-memory task object. */
+/**
+ * Resets the task form and
+ * restores the default task object.
+ *
+ * @function resetTaskData
+ * @returns {void}
+ */
 function resetTaskData() {
   document.getElementById("taskForm").reset();
 
@@ -174,15 +288,29 @@ function resetTaskData() {
     field: "1",
     createdAt: null,
   };
+
   resetValidation();
 }
 
-/** Clears subtasks UI and resets the selected category display. */
-function resetSubTasksAndCategory() {
+/**
+ * Clears all subtasks
+ * and re-renders the subtask list.
+ *
+ * @function resetSubTasks
+ * @returns {void}
+ */
+function resetSubTasks() {
   document.getElementById("subtaskInput").value = "";
   renderSubTasks();
+}
 
-  selectedCategory = "";
+/**
+ * Resets the category UI elements.
+ *
+ * @function resetCategoryUI
+ * @returns {void}
+ */
+function resetCategoryUI() {
   document.getElementById("categoryLabel").textContent = "Select task category";
 
   const button = document.querySelector(".TaskCategoryInput");
@@ -190,45 +318,4 @@ function resetSubTasksAndCategory() {
 
   const error = document.getElementById("categoryError");
   if (error) error.classList.remove("visible");
-
-  const dropdown = document.getElementById("categoryDropdown");
-  const arrow = document.getElementById("categoryDropdownArrow");
-
-  if (dropdown) dropdown.classList.add("hidden");
-  if (arrow) arrow.classList.remove("rotate");
-}
-
-/** Resets assigned contacts preview and restores default priority selection. */
-function resetAssignedContactsAndPriority() {
-  document.getElementById("assignedPreviewContainer").innerHTML = "";
-  renderSelectedContactsBelowInput();
-
-  document
-    .querySelectorAll(".priorityButton")
-    .forEach((b) => b.classList.remove("active"));
-  setDefaultPriority();
-}
-
-/** Clears all add-task form sections and returns to default state. */
-function clearForm() {
-  resetTaskData();
-  resetSubTasksAndCategory();
-  resetAssignedContactsAndPriority();
-
-  // Reset arrows
-  const assignedArrow = document.getElementById("assignedDropdownArrow");
-  const categoryArrow = document.getElementById("categoryDropdownArrow"); // or the correct ID name
-
-  if (assignedArrow) assignedArrow.classList.remove("rotate");
-  if (categoryArrow) categoryArrow.classList.remove("rotate");
-}
-
-/** Shows a temporary success toast after task creation. */
-function showToast() {
-  const toast = document.getElementById("toast");
-  toast.classList.add("show");
-
-  setTimeout(() => {
-    toast.classList.remove("show");
-  }, 2000);
 }

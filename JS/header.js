@@ -1,31 +1,16 @@
-/**
- * Checks whether a user is currently logged in via session storage.
- * @returns {boolean} True if contactId is stored in session.
- */
-function isLoggedIn() {
-  return !!sessionStorage.getItem("contactId");
-}
-
 document.addEventListener('DOMContentLoaded', async () => {
   await loadHeaderTemplate('./templates/header.html', '#header-slot');
   handleHeaderAuth();
 });
-
 
 /**
  * Applies or removes the guest-mode class on the body
  * depending on the user's login and guest status.
  */
 function handleHeaderAuth() {
-  const isLoggedIn_now = !!sessionStorage.getItem("contactId");
+  const isLoggedInNow = !!sessionStorage.getItem("contactId");
   const isGuest = sessionStorage.getItem("isGuest") === "true";
-  
-  // Guest mode: only when not logged in and not using guest access
-  if (!isLoggedIn_now && !isGuest) {
-    document.body.classList.add("guest-mode");
-  } else {
-    document.body.classList.remove("guest-mode");
-  }
+  document.body.classList.toggle("guest-mode", !isLoggedInNow && !isGuest);
 }
 
 /**
@@ -41,10 +26,7 @@ async function loadHeaderTemplate(url, targetSelector) {
   if (!res.ok) return;
 
   target.innerHTML = await res.text();
-  
-  // Set up submenu after the template has loaded
   setupSubmenu();
-  // Initialize header user badge (initials / color / guest) after template load
   initHeaderUser();
 }
 
@@ -53,46 +35,87 @@ async function loadHeaderTemplate(url, targetSelector) {
  * and Escape key handling.
  */
 function setupSubmenu() {
+  const submenu = getSubmenuElements();
+  if (!submenu || submenu.badge.dataset.submenuInitialized === "true") return;
+  submenu.badge.dataset.submenuInitialized = "true";
+  registerSubmenuHandlers(submenu);
+}
+
+/**
+ * Returns the user-menu badge and submenu elements.
+ * @returns {{badge: HTMLElement, menu: HTMLElement}|null} Menu elements or null.
+ */
+function getSubmenuElements() {
   const badge = document.getElementById("circleBadge");
   const menu = document.getElementById("submenu");
-  if (!badge || !menu) return;
-  if (badge.dataset.submenuInitialized === "true") return;
-  badge.dataset.submenuInitialized = "true";
+  return badge && menu ? { badge, menu } : null;
+}
 
-  const open = () => {
-    menu.classList.remove("hidden");
-    badge.setAttribute("aria-expanded", "true");
-  };
+/**
+ * Opens or closes the submenu and updates accessibility state.
+ * @param {{badge: HTMLElement, menu: HTMLElement}} submenu - Header submenu elements.
+ * @param {boolean} isOpen - Whether the submenu should be open.
+ */
+function setSubmenuState({ badge, menu }, isOpen) {
+  menu.classList.toggle("hidden", !isOpen);
+  badge.setAttribute("aria-expanded", String(isOpen));
+}
 
-  const close = () => {
-    menu.classList.add("hidden");
-    badge.setAttribute("aria-expanded", "false");
-  };
+/**
+ * Toggles the header submenu.
+ * @param {{badge: HTMLElement, menu: HTMLElement}} submenu - Header submenu elements.
+ */
+function toggleSubmenu(submenu) {
+  setSubmenuState(submenu, submenu.menu.classList.contains("hidden"));
+}
 
-  const toggle = () => {
-    menu.classList.contains("hidden") ? open() : close();
-  };
+/**
+ * Registers click and keyboard listeners for the submenu.
+ * @param {{badge: HTMLElement, menu: HTMLElement}} submenu - Header submenu elements.
+ */
+function registerSubmenuHandlers(submenu) {
+  submenu.badge.addEventListener("click", (e) => handleSubmenuBadgeClick(e, submenu));
+  submenu.menu.addEventListener("click", stopSubmenuEventPropagation);
+  document.addEventListener("click", (e) => closeSubmenuOnOutsideClick(e, submenu));
+  document.addEventListener("keydown", (e) => closeSubmenuOnEscape(e, submenu));
+}
 
-  badge.addEventListener("click", (e) => {
-    e.stopPropagation();
-    toggle();
-  });
+/**
+ * Handles a click on the user badge.
+ * @param {MouseEvent} event - Click event from the badge.
+ * @param {{badge: HTMLElement, menu: HTMLElement}} submenu - Header submenu elements.
+ */
+function handleSubmenuBadgeClick(event, submenu) {
+  event.stopPropagation();
+  toggleSubmenu(submenu);
+}
 
-  menu.addEventListener("click", (e) => {
-    e.stopPropagation();
-  });
+/**
+ * Prevents menu clicks from bubbling to the document close handler.
+ * @param {Event} event - Menu click event.
+ */
+function stopSubmenuEventPropagation(event) {
+  event.stopPropagation();
+}
 
-  // Close when clicking outside
-  document.addEventListener("click", (e) => {
-    if (!menu.classList.contains("hidden") && !e.target.closest(".user-menu")) {
-      close();
-    }
-  });
+/**
+ * Closes the submenu when the user clicks outside the menu.
+ * @param {MouseEvent} event - Document click event.
+ * @param {{badge: HTMLElement, menu: HTMLElement}} submenu - Header submenu elements.
+ */
+function closeSubmenuOnOutsideClick(event, submenu) {
+  if (!submenu.menu.classList.contains("hidden") && !event.target.closest(".user-menu")) {
+    setSubmenuState(submenu, false);
+  }
+}
 
-  // Close on Escape
-  document.addEventListener("keydown", (e) => {
-    if (e.key === "Escape") close();
-  });
+/**
+ * Closes the submenu when Escape is pressed.
+ * @param {KeyboardEvent} event - Document keyboard event.
+ * @param {{badge: HTMLElement, menu: HTMLElement}} submenu - Header submenu elements.
+ */
+function closeSubmenuOnEscape(event, submenu) {
+  if (event.key === "Escape") setSubmenuState(submenu, false);
 }
 
 /**
@@ -102,7 +125,7 @@ function setupSubmenu() {
 function logout() {
   sessionStorage.clear();
   localStorage.clear();
-  window.location.href = "./index.html"; // or "./login.html"
+  window.location.href = "./index.html";
 }
 
 /**
@@ -110,23 +133,24 @@ function logout() {
  * Displays "G" for guest users.
  */
 function initHeaderUser() {
-  const initials = sessionStorage.getItem('userInitials');
-  const color = sessionStorage.getItem('userColor');
-  const isGuest = sessionStorage.getItem('isGuest');
-
-  const badge = document.getElementById('circleBadge');
-  if (!badge) return;
-  const badgeSpan = badge.querySelector('span');
+  const badgeSpan = getHeaderBadgeSpan();
   if (!badgeSpan) return;
+  badgeSpan.textContent = getHeaderBadgeText();
+}
 
-  if (isGuest === "true") {
-    badgeSpan.textContent = "G";
-    return;
-  }
+/**
+ * Returns the text span inside the header user badge.
+ * @returns {HTMLSpanElement|null} Badge text element or null.
+ */
+function getHeaderBadgeSpan() {
+  return document.getElementById('circleBadge')?.querySelector('span') || null;
+}
 
-  if (initials) {
-    badgeSpan.textContent = initials;
-  }
-
-  // Do not change badge background color here; keep styling in CSS.
+/**
+ * Returns the badge text for a guest or logged-in user.
+ * @returns {string} Badge initials.
+ */
+function getHeaderBadgeText() {
+  if (sessionStorage.getItem('isGuest') === "true") return "G";
+  return sessionStorage.getItem('userInitials') || "";
 }
